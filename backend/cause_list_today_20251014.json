@@ -1,0 +1,162 @@
+[
+  {
+    "serial_no": 1,
+    "case_number": "CIVIL/719/2023",
+    "parties": "Party 67 vs. Party 88",
+    "court": "Court Room 1 - Justice Sharma",
+    "hearing_time": "14:00",
+    "purpose": "Evidence"
+  },
+  {
+    "serial_no": 2,
+    "case_number": "CRIMINAL/857/2019",
+    "parties": "Party 47 vs. Party 92",
+    "court": "Court Room 2 - Justice Verma",
+    "hearing_time": "13:00",
+    "purpose": "Hearing"
+  },
+  {
+    "serial_no": 3,
+    "case_number": "FAMILY/346/2020",
+    "parties": "Party 5 vs. Party 21",
+    "court": "Court Room 2 - Justice Verma",
+    "hearing_time": "10:15",
+    "purpose": "Judgment"
+  },
+  {
+    "serial_no": 4,
+    "case_number": "CIVIL/425/2022",
+    "parties": "Party 85 vs. Party 63",
+    "court": "Court Room 4 - Justice Patel",
+    "hearing_time": "14:30",
+    "purpose": "Judgment"
+  },
+  {
+    "serial_no": 5,
+    "case_number": "COMPANY/260/2019",
+    "parties": "Party 93 vs. Party 23",
+    "court": "Court Room 4 - Justice Patel",
+    "hearing_time": "15:45",
+    "purpose": "Judgment"
+  },
+  {
+    "serial_no": 6,
+    "case_number": "CIVIL/896/2023",
+    "parties": "Party 2 vs. Party 96",
+    "court": "Court Room 1 - Justice Sharma",
+    "hearing_time": "15:45",
+    "purpose": "Judgment"
+  },
+  {
+    "serial_no": 7,
+    "case_number": "COMPANY/631/2020",
+    "parties": "Party 27 vs. Party 21",
+    "court": "Court Room 4 - Justice Patel",
+    "hearing_time": "10:45",
+    "purpose": "Arguments"
+  },
+  {
+    "serial_no": 8,
+    "case_number": "CIVIL/482/2018",
+    "parties": "Party 32 vs. Party 46",
+    "court": "Court Room 1 - Justice Sharma",
+    "hearing_time": "16:15",
+    "purpose": "Judgment"
+  },
+  {
+    "serial_no": 9,
+    "case_number": "COMPANY/331/2019",
+    "parties": "Party 90 vs. Party 30",
+    "court": "Court Room 3 - Justice Singh",
+    "hearing_time": "14:30",
+    "purpose": "Evidence"
+  },
+  {
+    "serial_no": 10,
+    "case_number": "LABOR/710/2018",
+    "parties": "Party 20 vs. Party 41",
+    "court": "Court Room 4 - Justice Patel",
+    "hearing_time": "16:00",
+    "purpose": "Judgment"
+  },
+  {
+    "serial_no": 11,
+    "case_number": "CIVIL/158/2024",
+    "parties": "Party 23 vs. Party 82",
+    "court": "Court Room 3 - Justice Singh",
+    "hearing_time": "11:45",
+    "purpose": "Evidence"
+  },
+  {
+    "serial_no": 12,
+    "case_number": "LABOR/564/2020",
+    "parties": "Party 96 vs. Party 91",
+    "court": "Court Room 1 - Justice Sharma",
+    "hearing_time": "16:00",
+    "purpose": "Hearing"
+  },
+  {
+    "serial_no": 13,
+    "case_number": "FAMILY/677/2018",
+    "parties": "Party 16 vs. Party 43",
+    "court": "Court Room 1 - Justice Sharma",
+    "hearing_time": "16:30",
+    "purpose": "Judgment"
+  },
+  {
+    "serial_no": 14,
+    "case_number": "COMPANY/927/2022",
+    "parties": "Party 30 vs. Party 56",
+    "court": "Court Room 4 - Justice Patel",
+    "hearing_time": "10:00",
+    "purpose": "Hearing"
+  },
+  {
+    "serial_no": 15,
+    "case_number": "FAMILY/940/2022",
+    "parties": "Party 10 vs. Party 32",
+    "court": "Court Room 4 - Justice Patel",
+    "hearing_time": "11:45",
+    "purpose": "Evidence"
+  },
+  {
+    "serial_no": 16,
+    "case_number": "COMPANY/805/2019",
+    "parties": "Party 15 vs. Party 9",
+    "court": "Court Room 2 - Justice Verma",
+    "hearing_time": "10:15",
+    "purpose": "Arguments"
+  },
+  {
+    "serial_no": 17,
+    "case_number": "FAMILY/262/2024",
+    "parties": "Party 26 vs. Party 62",
+    "court": "Court Room 2 - Justice Verma",
+    "hearing_time": "13:15",
+    "purpose": "Evidence"
+  },
+  {
+    "serial_no": 18,
+    "case_number": "CIVIL/962/2024",
+    "parties": "Party 45 vs. Party 23",
+    "court": "Court Room 4 - Justice Patel",
+    "hearing_time": "10:30",
+    "purpose": "Evidence"
+  },
+  {
+    "serial_no": 19,
+    "case_number": "FAMILY/111/2022",
+    "parties": "Party 100 vs. Party 90",
+    "court": "Court Room 4 - Justice Patel",
+    "hearing_time": "14:00",
+    "purpose": "Arguments"
+  },
+  {
+    "serial_no": 20,
+    "case_number": "CRIMINAL/343/2022",
+    "parties": "Party 95 vs. Party 29",
+    "court": "Court Room 1 - Justice Sharma",
+    "hearing_time": "10:15",
+    "purpose": "Hearing"
+  }
+]

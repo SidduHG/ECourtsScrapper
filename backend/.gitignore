@@ -1,0 +1,40 @@
+# Python bytecode files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+# pip / setuptools / wheel
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Flask stuff
+instance/
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# IDE / Editor settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
