@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {
   Container,
   Row,
   Col,
   Card,
-  Nav,
-  Tab,
-  Form,
-  Button,
   Alert,
   Spinner,
-  Table,
-  Badge
+  Badge,
+  Button
 } from 'react-bootstrap';
 
-// API base URL - adjust according to your setup
+// Import components
+import Header from './components/Header';
+import TabNavigation from './components/TabNavigation';
+import CaseSearch from './components/CaseSearch';
+import CauseListDownload from './components/CauseListDownload';
+import QuickDownload from './components/QuickDownload';
+
 const API_BASE_URL = 'http://127.0.0.1:5000';
 
 function App() {
@@ -24,12 +26,327 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  
+  // State for cascading dropdowns
+  const [states, setStates] = useState([]);
+  const [allDistricts, setAllDistricts] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [courtComplexes, setCourtComplexes] = useState([]);
+  const [courts, setCourts] = useState([]);
+  const [allTaluks, setAllTaluks] = useState([]);
+  const [taluks, setTaluks] = useState([]);
+  
+  // Selected values
+  const [selectedState, setSelectedState] = useState('');
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [selectedCourtComplex, setSelectedCourtComplex] = useState('');
+  const [selectedCourt, setSelectedCourt] = useState('');
+  const [selectedTaluk, setSelectedTaluk] = useState('');
+  const [causeListDate, setCauseListDate] = useState('');
+  
+  // Geographical data
+  const [geographicalData, setGeographicalData] = useState(null);
+  const [serverStatus, setServerStatus] = useState('unknown');
+  const [stats, setStats] = useState({});
+
   const [formData, setFormData] = useState({
     cnr: 'DLHI010001232024',
     case_type: 'CIVIL',
     case_number: '123',
     case_year: '2024'
   });
+
+  // Fetch ALL initial data on component mount
+  useEffect(() => {
+    fetchInitialData();
+    
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    setCauseListDate(today);
+  }, []);
+
+  // Update stats when data changes
+  useEffect(() => {
+    updateStats();
+  }, [states, allDistricts, allTaluks, courtComplexes, courts, result]);
+
+  const updateStats = () => {
+    setStats({
+      cases: result ? 1 : 0,
+      courts: courts.length,
+      downloads: 0,
+      geographical: states.length + allDistricts.length + allTaluks.length
+    });
+  };
+
+  const fetchInitialData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        fetchAllStates(),
+        fetchAllDistricts(),
+        fetchAllTaluks(),
+        fetchGeographicalData(),
+        testConnection()
+      ]);
+    } catch (err) {
+      console.error('Error fetching initial data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const testConnection = async () => {
+    setServerStatus('checking');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/health`);
+      if (response.ok) {
+        setServerStatus('online');
+      } else {
+        setServerStatus('offline');
+      }
+    } catch (err) {
+      setServerStatus('offline');
+    }
+  };
+
+  // Fetch ALL states with complete data
+  const fetchAllStates = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/all-states`);
+      const data = await response.json();
+      if (data.states) {
+        setStates(data.states);
+      }
+    } catch (err) {
+      console.error('Error fetching all states:', err);
+    }
+  };
+
+  // Fetch ALL districts
+  const fetchAllDistricts = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/all-districts`);
+      const data = await response.json();
+      if (data.districts) {
+        setAllDistricts(data.districts);
+      }
+    } catch (err) {
+      console.error('Error fetching all districts:', err);
+    }
+  };
+
+  // Fetch ALL taluks
+  const fetchAllTaluks = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/all-taluks`);
+      const data = await response.json();
+      if (data.taluks) {
+        setAllTaluks(data.taluks);
+      }
+    } catch (err) {
+      console.error('Error fetching all taluks:', err);
+    }
+  };
+
+  // Fetch districts for specific state
+  const fetchDistricts = async (stateCode) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/districts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state_code: stateCode })
+      });
+      const data = await response.json();
+      if (data.districts) {
+        setDistricts(data.districts);
+        setCourtComplexes([]);
+        setCourts([]);
+        setTaluks([]);
+      }
+    } catch (err) {
+      setError('Failed to fetch districts');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCourtComplexes = async (stateCode, districtCode) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/court-complexes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          state_code: stateCode,
+          district_code: districtCode 
+        })
+      });
+      const data = await response.json();
+      if (data.court_complexes) {
+        setCourtComplexes(data.court_complexes);
+        setCourts([]);
+      }
+    } catch (err) {
+      setError('Failed to fetch court complexes');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCourts = async (stateCode, districtCode, courtComplexCode) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/courts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          state_code: stateCode,
+          district_code: districtCode,
+          court_complex_code: courtComplexCode
+        })
+      });
+      const data = await response.json();
+      if (data.courts) {
+        setCourts(data.courts);
+      }
+    } catch (err) {
+      setError('Failed to fetch courts');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch complete geographical hierarchy
+  const fetchGeographicalData = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/geographical-data`);
+      const data = await response.json();
+      if (data.geographical_data) {
+        setGeographicalData(data);
+      }
+    } catch (err) {
+      console.error('Error fetching geographical data:', err);
+    }
+  };
+
+  const handleStateChange = (e) => {
+    const stateCode = e.target.value;
+    setSelectedState(stateCode);
+    setSelectedDistrict('');
+    setSelectedCourtComplex('');
+    setSelectedCourt('');
+    setSelectedTaluk('');
+    setDistricts([]);
+    setCourtComplexes([]);
+    setCourts([]);
+    setTaluks([]);
+    
+    if (stateCode) {
+      fetchDistricts(stateCode);
+      // Show taluks for this state
+      const stateTaluks = allTaluks.filter(taluk => taluk.state_code === stateCode);
+      setTaluks(stateTaluks);
+    }
+  };
+
+  const handleDistrictChange = (e) => {
+    const districtCode = e.target.value;
+    setSelectedDistrict(districtCode);
+    setSelectedCourtComplex('');
+    setSelectedCourt('');
+    setSelectedTaluk('');
+    setCourtComplexes([]);
+    setCourts([]);
+    
+    if (districtCode && selectedState) {
+      fetchCourtComplexes(selectedState, districtCode);
+      // Show taluks for this district
+      const districtTaluks = allTaluks.filter(
+        taluk => taluk.state_code === selectedState && taluk.district_code === districtCode
+      );
+      setTaluks(districtTaluks);
+    }
+  };
+
+  const handleCourtComplexChange = (e) => {
+    const courtComplexCode = e.target.value;
+    setSelectedCourtComplex(courtComplexCode);
+    setSelectedCourt('');
+    setCourts([]);
+    
+    if (courtComplexCode && selectedState && selectedDistrict) {
+      fetchCourts(selectedState, selectedDistrict, courtComplexCode);
+    }
+  };
+
+  // JSON Download Function
+  const downloadCauseListJSON = async (type = 'single') => {
+    if (type === 'single' && !selectedCourt) {
+      setError('Please select a court');
+      return;
+    }
+    
+    if ((type === 'all' || type === 'complex') && !selectedCourtComplex) {
+      setError('Please select a court complex');
+      return;
+    }
+    
+    if (!causeListDate) {
+      setError('Please select a date');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const payload = {
+        state_code: selectedState,
+        district_code: selectedDistrict,
+        court_complex_code: selectedCourtComplex,
+        date: causeListDate,
+        download_type: type
+      };
+
+      if (type === 'single') {
+        payload.court_code = selectedCourt;
+      }
+
+      // Use the cause-list endpoint which returns JSON
+      const response = await fetch(`${API_BASE_URL}/api/cause-list`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to download cause list');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cause_list_${type}_${causeListDate}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      alert('Cause list downloaded successfully in JSON format!');
+    } catch (err) {
+      setError(`Failed to download: ${err.message}`);
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     setFormData({
@@ -69,11 +386,8 @@ function App() {
 
       const response = await fetch(`${API_BASE_URL}/api/search`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-        mode: 'cors'
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
       
       if (!response.ok) {
@@ -87,8 +401,8 @@ function App() {
         setResult(data);
       }
     } catch (err) {
-      setError(`Failed to fetch case data: ${err.message}. Make sure the Flask server is running on port 5000.`);
-      console.error('Search error:', err);
+      setError(`Failed to fetch: ${err.message}`);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -99,13 +413,22 @@ function App() {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/cause-list`, {
+      let endpoint = '/api/cause-list';
+      let body = { date_type: dateType };
+
+      // Handle geographical data downloads
+      if (['states', 'districts', 'taluks'].includes(dateType)) {
+        endpoint = '/api/export-data';
+        body = {
+          format: 'json',
+          data_type: dateType
+        };
+      }
+
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ date_type: dateType }),
-        mode: 'cors'
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
       });
 
       if (!response.ok) {
@@ -115,26 +438,33 @@ function App() {
 
       const blob = await response.blob();
       
-      // Check if blob is empty
       if (blob.size === 0) {
         throw new Error('Empty response from server');
       }
 
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.style.display = 'none';
+      
+      if (['states', 'districts', 'taluks'].includes(dateType)) {
+        a.download = `${dateType}_data_${new Date().toISOString().split('T')[0]}.json`;
+      } else {
+        a.download = `cause_list_${dateType}_${new Date().toISOString().split('T')[0]}.json`;
+      }
+      
       a.href = url;
-      a.download = `cause_list_${dateType}_${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
       
-      // Show success message
-      setError('');
-      alert(`Cause list for ${dateType} downloaded successfully!`);
+      if (['states', 'districts', 'taluks'].includes(dateType)) {
+        alert(`${dateType.charAt(0).toUpperCase() + dateType.slice(1)} data downloaded successfully!`);
+      } else {
+        alert(`Cause list for ${dateType} downloaded successfully!`);
+      }
     } catch (err) {
-      setError(`Failed to download cause list: ${err.message}`);
-      console.error('Download error:', err);
+      setError(`Failed to download: ${err.message}`);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -151,17 +481,158 @@ function App() {
     setError('');
   };
 
-  const testConnection = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/health`);
-      if (response.ok) {
-        alert('Connection to Flask server successful!');
-      } else {
-        alert('Connection failed!');
-      }
-    } catch (err) {
-      alert('Cannot connect to Flask server. Make sure it is running on port 5000.');
+  const renderActiveTab = () => {
+    switch (activeTab) {
+      case 'case-search':
+        return (
+          <CaseSearch
+            searchType={searchType}
+            setSearchType={setSearchType}
+            formData={formData}
+            handleInputChange={handleInputChange}
+            searchCase={searchCase}
+            resetForm={resetForm}
+            loading={loading}
+            result={result}
+            error={error}
+          />
+        );
+      case 'cause-list-download':
+        return (
+          <CauseListDownload
+            states={states}
+            districts={districts}
+            courtComplexes={courtComplexes}
+            courts={courts}
+            selectedState={selectedState}
+            selectedDistrict={selectedDistrict}
+            selectedCourtComplex={selectedCourtComplex}
+            selectedCourt={selectedCourt}
+            causeListDate={causeListDate}
+            loading={loading}
+            handleStateChange={handleStateChange}
+            handleDistrictChange={handleDistrictChange}
+            handleCourtComplexChange={handleCourtComplexChange}
+            setSelectedCourt={setSelectedCourt}
+            setCauseListDate={setCauseListDate}
+            downloadCauseListJSON={downloadCauseListJSON}
+            error={error}
+            geographicalData={geographicalData}
+          />
+        );
+      case 'cause-list':
+        return (
+          <QuickDownload
+            downloadCauseList={downloadCauseList}
+            loading={loading}
+            downloadStats={{
+              today: 20,
+              tomorrow: 15
+            }}
+          />
+        );
+      case 'geographical':
+        return (
+          <Row>
+            <Col lg={10} className="mx-auto">
+              <Card>
+                <Card.Header className="bg-warning text-white">
+                  <h5 className="mb-0">🗺️ Geographical Data Explorer</h5>
+                  <small>Total Data: {states.length} States • {allDistricts.length} Districts • {allTaluks.length} Taluks</small>
+                </Card.Header>
+                <Card.Body>
+                  <Row className="mb-4">
+                    <Col md={4} className="text-center">
+                      <div className="border rounded p-3">
+                        <h2 className="text-primary">{states.length}</h2>
+                        <p className="mb-0 text-muted">States/UTs</p>
+                        <small className="text-muted">Fetched: {states.length > 0 ? '✅' : '❌'}</small>
+                      </div>
+                    </Col>
+                    <Col md={4} className="text-center">
+                      <div className="border rounded p-3">
+                        <h2 className="text-info">{allDistricts.length}</h2>
+                        <p className="mb-0 text-muted">Districts</p>
+                        <small className="text-muted">Fetched: {allDistricts.length > 0 ? '✅' : '❌'}</small>
+                      </div>
+                    </Col>
+                    <Col md={4} className="text-center">
+                      <div className="border rounded p-3">
+                        <h2 className="text-success">{allTaluks.length}</h2>
+                        <p className="mb-0 text-muted">Taluks</p>
+                        <small className="text-muted">Fetched: {allTaluks.length > 0 ? '✅' : '❌'}</small>
+                      </div>
+                    </Col>
+                  </Row>
+
+                  <Alert variant="info" className="mb-4">
+                    <strong>📊 Data Status:</strong> 
+                    {states.length > 0 && allDistricts.length > 0 && allTaluks.length > 0 
+                      ? ' ✅ All geographical data loaded successfully!' 
+                      : ' ⚠️ Some data may still be loading...'}
+                  </Alert>
+
+                  <div className="d-flex flex-column gap-3">
+                    <Button 
+                      variant="outline-primary" 
+                      size="lg"
+                      onClick={() => downloadCauseList('states')}
+                      disabled={loading || states.length === 0}
+                    >
+                      📊 Download All States Data (JSON)
+                    </Button>
+                    
+                    <Button 
+                      variant="outline-info" 
+                      size="lg"
+                      onClick={() => downloadCauseList('districts')}
+                      disabled={loading || allDistricts.length === 0}
+                    >
+                      📍 Download All Districts Data (JSON)
+                    </Button>
+                    
+                    <Button 
+                      variant="outline-success" 
+                      size="lg"
+                      onClick={() => downloadCauseList('taluks')}
+                      disabled={loading || allTaluks.length === 0}
+                    >
+                      🏘️ Download All Taluks Data (JSON)
+                    </Button>
+
+                    <Button 
+                      variant="warning" 
+                      size="lg"
+                      onClick={fetchInitialData}
+                      disabled={loading}
+                    >
+                      🔄 Refresh All Geographical Data
+                    </Button>
+                  </div>
+
+                  {geographicalData && (
+                    <div className="mt-4">
+                      <h6>Complete Geographical Hierarchy (Sample):</h6>
+                      <pre className="bg-light p-3 rounded" style={{ fontSize: '0.8rem', maxHeight: '300px', overflow: 'auto' }}>
+                        {JSON.stringify(geographicalData, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        );
+      default:
+        return null;
     }
+  };
+
+  const geographicalStats = {
+    states: states.length,
+    districts: allDistricts.length,
+    taluks: allTaluks.length,
+    courts: courts.length
   };
 
   return (
@@ -170,295 +641,37 @@ function App() {
       minHeight: '100vh'
     }}>
       <Row className="justify-content-center">
-        <Col md={10} lg={8}>
-          {/* Header */}
-          <Card className="shadow-lg border-0 mb-4">
-            <Card.Body className="text-white text-center" style={{ 
-              background: 'linear-gradient(45deg, #2c3e50, #34495e)'
-            }}>
-              <h1 className="display-4 fw-bold mb-3">eCourts Scraper</h1>
-              <p className="lead mb-0 opacity-75">
-                Check case status and download cause lists from eCourts portal
-              </p>
-              <Button 
-                variant="outline-light" 
-                size="sm" 
-                className="mt-3"
-                onClick={testConnection}
-              >
-                Test Server Connection
-              </Button>
-            </Card.Body>
-          </Card>
-
-          {/* Main Content */}
+        <Col md={10} lg={10}>
+          <Header 
+            onTestConnection={testConnection} 
+            serverStatus={serverStatus}
+            geographicalStats={geographicalStats}
+          />
+          
           <Card className="shadow-lg border-0">
             <Card.Body className="p-0">
-              <Tab.Container activeKey={activeTab} onSelect={setActiveTab}>
-                <Card.Header className="bg-light border-bottom-0">
-                  <Nav variant="pills" className="justify-content-center">
-                    <Nav.Item>
-                      <Nav.Link eventKey="case-search" className="fw-semibold">
-                        📋 Case Search
-                      </Nav.Link>
-                    </Nav.Item>
-                    <Nav.Item>
-                      <Nav.Link eventKey="cause-list" className="fw-semibold">
-                        📄 Cause List
-                      </Nav.Link>
-                    </Nav.Item>
-                  </Nav>
-                </Card.Header>
+              <TabNavigation 
+                activeTab={activeTab} 
+                setActiveTab={setActiveTab} 
+                stats={stats}
+              />
 
-                <Card.Body className="p-4">
-                  {error && (
-                    <Alert variant="danger" dismissible onClose={() => setError('')}>
-                      ⚠️ {error}
-                    </Alert>
-                  )}
+              <Card.Body className="p-4">
+                {error && (
+                  <Alert variant="danger" dismissible onClose={() => setError('')}>
+                    ⚠️ {error}
+                  </Alert>
+                )}
 
-                  {loading && (
-                    <div className="text-center py-4">
-                      <Spinner animation="border" variant="primary" className="mb-3" />
-                      <p className="text-muted">Fetching data from eCourts...</p>
-                    </div>
-                  )}
+                {loading && (
+                  <div className="text-center py-4">
+                    <Spinner animation="border" variant="primary" className="mb-3" />
+                    <p className="text-muted">Loading geographical data...</p>
+                  </div>
+                )}
 
-                  <Tab.Content>
-                    {/* Case Search Tab */}
-                    <Tab.Pane eventKey="case-search">
-                      <Row>
-                        <Col lg={8} className="mx-auto">
-                          <Card className="mb-4">
-                            <Card.Header className="bg-transparent border-bottom-0">
-                              <Nav variant="pills" className="justify-content-center">
-                                <Nav.Item>
-                                  <Nav.Link 
-                                    active={searchType === 'cnr'}
-                                    onClick={() => setSearchType('cnr')}
-                                    className="fw-semibold"
-                                  >
-                                    🔍 Search by CNR
-                                  </Nav.Link>
-                                </Nav.Item>
-                                <Nav.Item>
-                                  <Nav.Link 
-                                    active={searchType === 'details'}
-                                    onClick={() => setSearchType('details')}
-                                    className="fw-semibold"
-                                  >
-                                    📝 Search by Case Details
-                                  </Nav.Link>
-                                </Nav.Item>
-                              </Nav>
-                            </Card.Header>
-                          </Card>
-
-                          <Card>
-                            <Card.Body>
-                              {searchType === 'cnr' ? (
-                                <Form.Group className="mb-3">
-                                  <Form.Label className="fw-semibold">CNR Number</Form.Label>
-                                  <Form.Control
-                                    type="text"
-                                    name="cnr"
-                                    value={formData.cnr}
-                                    onChange={handleInputChange}
-                                    placeholder="Enter CNR number"
-                                    className="py-2"
-                                  />
-                                </Form.Group>
-                              ) : (
-                                <>
-                                  <Form.Group className="mb-3">
-                                    <Form.Label className="fw-semibold">Case Type</Form.Label>
-                                    <Form.Control
-                                      type="text"
-                                      name="case_type"
-                                      value={formData.case_type}
-                                      onChange={handleInputChange}
-                                      placeholder="e.g., CIVIL, CRIMINAL"
-                                      className="py-2"
-                                    />
-                                  </Form.Group>
-                                  <Row>
-                                    <Col md={6}>
-                                      <Form.Group className="mb-3">
-                                        <Form.Label className="fw-semibold">Case Number</Form.Label>
-                                        <Form.Control
-                                          type="text"
-                                          name="case_number"
-                                          value={formData.case_number}
-                                          onChange={handleInputChange}
-                                          placeholder="Enter case number"
-                                          className="py-2"
-                                        />
-                                      </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                      <Form.Group className="mb-3">
-                                        <Form.Label className="fw-semibold">Case Year</Form.Label>
-                                        <Form.Control
-                                          type="text"
-                                          name="case_year"
-                                          value={formData.case_year}
-                                          onChange={handleInputChange}
-                                          placeholder="e.g., 2024"
-                                          className="py-2"
-                                        />
-                                      </Form.Group>
-                                    </Col>
-                                  </Row>
-                                </>
-                              )}
-
-                              <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <Button 
-                                  variant="outline-secondary" 
-                                  onClick={resetForm}
-                                  className="me-md-2"
-                                >
-                                  🔄 Reset
-                                </Button>
-                                <Button 
-                                  variant="primary" 
-                                  onClick={searchCase}
-                                  disabled={loading}
-                                >
-                                  🔍 Search Case
-                                </Button>
-                              </div>
-                            </Card.Body>
-                          </Card>
-
-                          {result && !loading && (
-                            <Card className="mt-4 border-primary">
-                              <Card.Header className="bg-primary text-white">
-                                <h5 className="mb-0">📋 Case Information</h5>
-                              </Card.Header>
-                              <Card.Body>
-                                <Table borderless className="mb-0">
-                                  <tbody>
-                                    {result.case_number && (
-                                      <tr>
-                                        <td className="fw-semibold text-muted" style={{ width: '40%' }}>
-                                          Case Number:
-                                        </td>
-                                        <td className="fw-bold">{result.case_number}</td>
-                                      </tr>
-                                    )}
-                                    {result.cnr && (
-                                      <tr>
-                                        <td className="fw-semibold text-muted">CNR:</td>
-                                        <td>{result.cnr}</td>
-                                      </tr>
-                                    )}
-                                    {result.court && (
-                                      <tr>
-                                        <td className="fw-semibold text-muted">Court:</td>
-                                        <td>{result.court}</td>
-                                      </tr>
-                                    )}
-                                    {result.parties && (
-                                      <tr>
-                                        <td className="fw-semibold text-muted">Parties:</td>
-                                        <td>{result.parties}</td>
-                                      </tr>
-                                    )}
-                                    {result.status && (
-                                      <tr>
-                                        <td className="fw-semibold text-muted">Status:</td>
-                                        <td>{result.status}</td>
-                                      </tr>
-                                    )}
-                                    <tr>
-                                      <td className="fw-semibold text-muted">Listing Status:</td>
-                                      <td>
-                                        {result.listed_today ? (
-                                          <Badge bg="success" className="fs-6">
-                                            ✅ Listed Today
-                                          </Badge>
-                                        ) : result.listed_tomorrow ? (
-                                          <Badge bg="warning" text="dark" className="fs-6">
-                                            ⏰ Listed Tomorrow
-                                          </Badge>
-                                        ) : (
-                                          <Badge bg="secondary" className="fs-6">
-                                            ❌ Not Listed
-                                          </Badge>
-                                        )}
-                                      </td>
-                                    </tr>
-                                    {result.serial_number && (
-                                      <tr>
-                                        <td className="fw-semibold text-muted">Serial Number:</td>
-                                        <td>
-                                          <Badge bg="info" className="fs-6">
-                                            {result.serial_number}
-                                          </Badge>
-                                        </td>
-                                      </tr>
-                                    )}
-                                    {result.hearing_date && (
-                                      <tr>
-                                        <td className="fw-semibold text-muted">Hearing Date:</td>
-                                        <td>
-                                          <Badge bg="light" text="dark" className="fs-6">
-                                            {result.hearing_date}
-                                          </Badge>
-                                        </td>
-                                      </tr>
-                                    )}
-                                  </tbody>
-                                </Table>
-                              </Card.Body>
-                            </Card>
-                          )}
-                        </Col>
-                      </Row>
-                    </Tab.Pane>
-
-                    {/* Cause List Tab */}
-                    <Tab.Pane eventKey="cause-list">
-                      <Row>
-                        <Col lg={6} className="mx-auto">
-                          <Card>
-                            <Card.Body className="text-center">
-                              <div className="mb-4">
-                                <span style={{ fontSize: '3rem', color: '#6c757d' }}>📄</span>
-                              </div>
-                              <h4 className="mb-3">Download Cause List</h4>
-                              <p className="text-muted mb-4">
-                                Download the complete cause list for today or tomorrow.
-                              </p>
-                              
-                              <div className="d-grid gap-3">
-                                <Button 
-                                  variant="primary" 
-                                  size="lg"
-                                  onClick={() => downloadCauseList('today')}
-                                  disabled={loading}
-                                >
-                                  📥 Download Today's Cause List
-                                </Button>
-                                
-                                <Button 
-                                  variant="outline-primary" 
-                                  size="lg"
-                                  onClick={() => downloadCauseList('tomorrow')}
-                                  disabled={loading}
-                                >
-                                  📥 Download Tomorrow's Cause List
-                                </Button>
-                              </div>
-                            </Card.Body>
-                          </Card>
-                        </Col>
-                      </Row>
-                    </Tab.Pane>
-                  </Tab.Content>
-                </Card.Body>
-              </Tab.Container>
+                {renderActiveTab()}
+              </Card.Body>
             </Card.Body>
           </Card>
         </Col>
