@@ -1,25 +1,25 @@
 # 🏛️ eCourts Scraper — Real-Time Case & Cause List Fetcher
 📌 Overview
-```
+<ul>
 eCourts Scraper is a full-stack web application that allows users to:
-Search for court cases by CNR or Case Details (Type, Number, Year).
-Check if the case is listed today or tomorrow and view its serial number & court name.
-Download Cause Lists (for today or tomorrow) as PDF or JSON in real time.
-Dynamically select State → District → Court Complex → Court Name directly from the UI.
-All data is fetched live from the official eCourts Services Portal.
+<li>Search for court cases by CNR or Case Details (Type, Number, Year).</li>
+<li>Check if the case is listed today or tomorrow and view its serial number & court name.</li>
+<li>Download Cause Lists (for today or tomorrow) as PDF or JSON in real time.</li>
+<li>Dynamically select State → District → Court Complex → Court Name directly from the UI.</li>
+<li>All data is fetched live from the official eCourts Services Portal.</li>
 This project demonstrates Python web scraping, Flask REST APIs, and React-based dynamic UIs, all working together to provide real-time access to court information.
-```
+</ul>
 
 # ⚙️ Features
 
-✅. Search Case by CNR or Details
-✅.  Check Today/Tomorrow Listing Status
-✅.  Download Cause List PDFs
-✅.  Fetch Real Court Data (No Hardcoding)
-✅.  Sta-+te → District → Court Complex → Court Name cascading dropdowns
-✅.  Backend Validation, JSON Responses, and PDF Export
-✅.  Responsive, Modern UI built with React + Bootstrap
-✅.  Optional CLI commands for batch fetches
+1. Search Case by CNR or Details
+2.  Check Today/Tomorrow Listing Status
+3.  Download Cause List PDFs
+4.  Fetch Real Court Data (No Hardcoding)
+5.  Sta-+te → District → Court Complex → Court Name cascading dropdowns
+6.  Backend Validation, JSON Responses, and PDF Export
+7.  Responsive, Modern UI built with React + Bootstrap
+8.  Optional CLI commands for batch fetches
 
 # Demo Vedio 
 
