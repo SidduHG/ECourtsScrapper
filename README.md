@@ -11,16 +11,16 @@ This project demonstrates Python web scraping, Flask REST APIs, and React-based 
 ```
 
 # ⚙️ Features
-```
-✅ Search Case by CNR or Details
-✅ Check Today/Tomorrow Listing Status
-✅ Download Cause List PDFs
-✅ Fetch Real Court Data (No Hardcoding)
-✅ State → District → Court Complex → Court Name cascading dropdowns
-✅ Backend Validation, JSON Responses, and PDF Export
-✅ Responsive, Modern UI built with React + Bootstrap
-✅ Optional CLI commands for batch fetches
-```
+
+✅. Search Case by CNR or Details
+✅.  Check Today/Tomorrow Listing Status
+✅.  Download Cause List PDFs
+✅.  Fetch Real Court Data (No Hardcoding)
+✅.  Sta-+te → District → Court Complex → Court Name cascading dropdowns
+✅.  Backend Validation, JSON Responses, and PDF Export
+✅.  Responsive, Modern UI built with React + Bootstrap
+✅.  Optional CLI commands for batch fetches
+
 # Demo Vedio 
 
 
@@ -29,12 +29,12 @@ https://github.com/user-attachments/assets/e3ba4fda-3701-43e4-8854-b697dc011f72
 
 # 🏗️ Tech Stack
 Layer	Technology
-Frontend	React.js, React-Bootstrap, Tailwind (optional)
+Frontend	React.js, React-Bootstrap
 Backend	Flask (Python)
 Scraping	requests, BeautifulSoup, pdfminer / PyPDF2
 PDF Parsing	PyPDF2 / pytesseract (OCR optional)
 Data Handling	JSON, REST API
-Deployment	Localhost / Render / Railway / AWS EC2
+Deployment	Localhost 
  # 📂 Project Structure
  ```
 eCourts-Scraper/
