@@ -1,13 +1,14 @@
 # 🏛️ eCourts Scraper — Real-Time Case & Cause List Fetcher
 📌 Overview
 <ul>
-eCourts Scraper is a full-stack web application that allows users to:
+<h2>eCourts Scraper is a full-stack web application that allows users to:</h2>
 <li>Search for court cases by CNR or Case Details (Type, Number, Year).</li>
 <li>Check if the case is listed today or tomorrow and view its serial number & court name.</li>
 <li>Download Cause Lists (for today or tomorrow) as PDF or JSON in real time.</li>
 <li>Dynamically select State → District → Court Complex → Court Name directly from the UI.</li>
 <li>All data is fetched live from the official eCourts Services Portal.</li>
-This project demonstrates Python web scraping, Flask REST APIs, and React-based dynamic UIs, all working together to provide real-time access to court information.
+ 
+<p><b>This project demonstrates Python web scraping, Flask REST APIs, and React-based dynamic UIs, all working together to provide real-time access to court information.</b></p>
 </ul>
 
 # ⚙️ Features
